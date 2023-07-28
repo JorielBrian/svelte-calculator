@@ -1,84 +1,65 @@
 <script>
     import "../app.css";
 
-    let num1 = null;
-    let num2 = null;
+    //initializing variables
+    let numbers = [];
+    let operations = [];
     let display = null;
     let output = null;
-    let operation = null;
-
+    let prevOutput = null;
+    //clicking numbers
     const handleNumbers = value =>{
+        //if the output is not empty it will proceed to the next equation
         if(output !== null){
-            return;
-        }else if(operation === null){
-            num1 === null ? num1 = value : num1 += value;
-            display = `${num1}`;
+            handleClear();
+            display = value;
         } else {
-            num2 === null ? num2 = value : num2 += value;
-            display = `${num1} ${operation} ${num2}`;
+            display === null ? display = value : display += value; //if the display is null this the number will be the display, else it will add to the display
         }
     }
-
+    //clicking operators
     const handleOperation = operator =>{
-        if(output !== null){
-            num1 = output;
-            operation = operator;
-            num2 = null;
-            output = null;
-            display = `${num1} ${operation}`;
-        }else if(num1 === null || operation !== null){
+        /*if the display is null it means there is no number, it will not do anything
+        the previews output will be the first number and will continue to the equation*/
+        if(display === null){
             return;
-        } else if(num1 !== null){
-            operation = operator;
-            display = `${num1} ${operation}`;
-        } else {
-            return;
+        } else if(output !== null){
+            prevOutput = output;
+            handleClear();
+            display = `${prevOutput} ${operator} `
+        }else {
+            display += ` ${operator} `; //adding the operator to the display with spaces from the start and end
         }
     }
-
     const handleClear = () =>{
-        [display, output, num1, num2, operation ] = [null, null, null, null, null]
+        [ display, output, prevOutput, numbers, operations ] = [ null, null, null, [], []] //clearing variables
     }
-
+    //clicking del function
     const handleDelete = () =>{
-        if(operation !== null && num2 === null){
-            operation = null;
-            display = `${num1}`;
-            output = null;
-        } else if (num2 !== null){
-            num2 = num2.toString().slice(0,-1);
-            display = `${num1} ${operation} ${num2}`
-            num2.length === 0 ? num2 = null : num2;
-            output = null;
-        } else {
-            num1 = num1.toString().slice(0,-1);
-            display = `${num1}`;
-            num1.length === 0 ? num1 = null : num1;
-            output = null;
-        }
+        display = display.toString().slice(0,-1);
     }
-
     async function handleEquals(){
+        //splitting numbers and operators and pushing them to numbers and operations variables
+        display.split(" ").forEach(digit => !isNaN(Number(digit)) ? numbers.push(Number(digit)) : operations.push(digit));
+        //posting numbers and operations array to the server
         const response = await fetch('./api/posts.json', {
             method: 'POST',
-            body: JSON.stringify({ num1, num2, operation }),
+            body: JSON.stringify({ numbers, operations }),
             headers: {
                 'Content-Type': 'application/json'
             }
         });
-
-        output = await response.json();
+        output = await response.json(); //getting the output response
     }
-
 </script>
 
 <div class="calculator-container">
-    <div class="calculator text-white bg-gray-600 w-1/3 my-10 mx-auto p-10 rounded-3xl">
-        <div class="calculator-output w-full h-60 flex relative m-auto bg-green-700 rounded-xl mb-5">
-            <input type="text" bind:value={ output } id="calculator-output" class="absolute font-bold text-6xl bg-transparent px-5 overflow-hidden" placeholder="Answer"/>
-            <input type="text" bind:value={ display } id="calculator-input" placeholder="0" class="font-bold absolute text-8xl bottom-8 right-10 w-full text-end bg-transparent overflow-hidden" />
+    <div class="calculator text-white bg-gray-600 w-1/2 my-10 mx-auto p-10 rounded-3xl">
+        <div class="calculator-output w-full h-40 flex relative m-auto bg-green-700 rounded-xl mb-5">
+            <input type="text" bind:value={ output } id="calculator-output" class="absolute font-bold text-4xl bg-transparent px-5 overflow-hidden" placeholder="Answer"/>
+            <input type="text" bind:value={ display } id="calculator-input" placeholder="0" class="font-bold absolute text-6xl bottom-8 right-10 w-full text-end bg-transparent overflow-hidden" />
         </div>
-        <div class="calculator-buttons w-full h-1/2 m-auto grid grid-cols-4 gap-3 place-content-center text-center font-bold text-4xl" >
+        <div class="calculator-buttons w-full h-[60vh] m-auto grid grid-cols-4 gap-3 place-content-center text-center font-bold text-4xl" >
             <button on:click= { handleClear } class="col-span-3 bg-blue-600">CLEAR</button>
             <button on:click= { handleDelete } class="bg-slate-950">DEL</button>
             <button on:click= { () => handleNumbers('9') }  class="numbers ">9</button>
@@ -105,7 +86,7 @@
     button{
         border-radius: 1rem;
         border: solid #000000;
-        height: 100px;
+        height: 80px;
         color: #ffffff;
         box-shadow: 2px 2px 2px #000000;
     }
