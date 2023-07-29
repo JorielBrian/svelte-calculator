@@ -1,83 +1,35 @@
 <script>
     import "../app.css";
-
     //initializing variables
-    /*let display = null;
-    let output = null;
-    let prevOutput = null;
-    //clicking numbers
-    const handleNumbers = value =>{
-        //if the output is not empty it will proceed to the next equation
-        if(output !== null){
-            handleClear();
-            display = value;
-        } else {
-            display === null ? display = `${value}` : display += `${value}`; //if the display is null this the number will be the display, else it will add to the display
-        }
-    }
-    //clicking operators
-    const handleOperation = operator =>{
-        //if the display is null it means there is no number, it will not do anything
-        //the previews output will be the first number and will continue to the equation
-        if(display === null){
-            return;
-        } else if(output !== null){
-            prevOutput = output;
-            handleClear();
-            display = `${prevOutput} ${operator} `
-        }else {
-            display += ` ${operator} `; //adding the operator to the display with spaces from the start and end
-        }
-    }
-    async function handleEquals(){
-        //posting numbers and operations array to the server
-        const response = await fetch('./api/posts.json', {
-            method: 'POST',
-            body: JSON.stringify({ display }),
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-        output = await response.json(); //getting the output response
-    }
-    const handleClear = () =>{
-        [ display, output, prevOutput ] = [ null, null, null] //clearing variables
-    }
-    //clicking del function
-    const handleDelete = () =>{
-        display = display.toString().slice(0,-1);
-    }*/
-    let display = null;
-    let output = null;
-    let prevOutput = null;
-    let equation = [];
-    let operations = [];
-    let number = null;
+    let display = null; //for the display of inputs
+    let output = null; //for the display of output
+    let equation = []; //storing inputs
+    let operations = []; //storing number of operations
+    let number = null; //storing initial number
 
+    //handling clicked numbers, displaying clicked numbers and storing to number variable
     const handleNumbers = value =>{
         if(output !== null){
             handleClear();
             number = value;
             display = number;
-            console.log(`output not empty, next number is: ${number}, equation is: ${equation}`);
         } else if(equation.length === 0){
             number === null ? number = value : number += value;
             display = number;
-            console.log(`number is: ${number}`);
         } else {
             number === null ? number = value : number += value;
             display += value;
-            console.log(equation);
         }
     }
+    //handling clicked operators, pushing number to the equation and clicked operator and displaying inputs
     const handleOperation = operator =>{
         equation.push(Number(number));
         equation.push(operator);
         operations.push(operator);
         updateDisplay();
         number = null;
-        console.log(equation);
     }
+    //handling equal upon clicked, sending equation to the server for computations and displaying response as output
     async function handleEquals(){
         equation.push(Number(number));
         number = null;
@@ -89,11 +41,12 @@
             }
         });
         output = await response.json();
-        console.log(output);
     }
+    //handling upon clicked Clear button, clearing all display and variables
     const handleClear = () =>{
         [ display, output, number, equation, operations ] = [ null, null, null, [], [] ]
     }
+    //deleting each display and numbers or operators inside the equation variable
     const handleDelete = () =>{
         if(number !== null){
             number = number.toString().slice(0,-1);
@@ -104,6 +57,7 @@
             updateDisplay();
         }
     }
+    //updating display from the equation variable
     const updateDisplay = () =>{
         display = equation.toString().replaceAll(',','');
     }
