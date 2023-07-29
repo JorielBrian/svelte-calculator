@@ -57,7 +57,7 @@
             updateDisplay();
         }
     }
-    //updating display from the equation variable
+    //updating display from the equation
     const updateDisplay = () =>{
         display = equation.toString().replaceAll(',','');
     }
