@@ -2,9 +2,7 @@
     import "../app.css";
 
     //initializing variables
-    let numbers = [];
-    let operations = [];
-    let display = null;
+    /*let display = null;
     let output = null;
     let prevOutput = null;
     //clicking numbers
@@ -14,13 +12,13 @@
             handleClear();
             display = value;
         } else {
-            display === null ? display = value : display += value; //if the display is null this the number will be the display, else it will add to the display
+            display === null ? display = `${value}` : display += `${value}`; //if the display is null this the number will be the display, else it will add to the display
         }
     }
     //clicking operators
     const handleOperation = operator =>{
-        /*if the display is null it means there is no number, it will not do anything
-        the previews output will be the first number and will continue to the equation*/
+        //if the display is null it means there is no number, it will not do anything
+        //the previews output will be the first number and will continue to the equation
         if(display === null){
             return;
         } else if(output !== null){
@@ -31,25 +29,83 @@
             display += ` ${operator} `; //adding the operator to the display with spaces from the start and end
         }
     }
-    const handleClear = () =>{
-        [ display, output, prevOutput, numbers, operations ] = [ null, null, null, [], []] //clearing variables
-    }
-    //clicking del function
-    const handleDelete = () =>{
-        display = display.toString().slice(0,-1);
-    }
     async function handleEquals(){
-        //splitting numbers and operators and pushing them to numbers and operations variables
-        display.split(" ").forEach(digit => !isNaN(Number(digit)) ? numbers.push(Number(digit)) : operations.push(digit));
         //posting numbers and operations array to the server
         const response = await fetch('./api/posts.json', {
             method: 'POST',
-            body: JSON.stringify({ numbers, operations }),
+            body: JSON.stringify({ display }),
             headers: {
                 'Content-Type': 'application/json'
             }
         });
         output = await response.json(); //getting the output response
+    }
+    const handleClear = () =>{
+        [ display, output, prevOutput ] = [ null, null, null] //clearing variables
+    }
+    //clicking del function
+    const handleDelete = () =>{
+        display = display.toString().slice(0,-1);
+    }*/
+    let display = null;
+    let output = null;
+    let prevOutput = null;
+    let equation = [];
+    let operations = [];
+    let number = null;
+
+    const handleNumbers = value =>{
+        if(output !== null){
+            handleClear();
+            number = value;
+            display = number;
+            console.log(`output not empty, next number is: ${number}, equation is: ${equation}`);
+        } else if(equation.length === 0){
+            number === null ? number = value : number += value;
+            display = number;
+            console.log(`number is: ${number}`);
+        } else {
+            number === null ? number = value : number += value;
+            display += value;
+            console.log(equation);
+        }
+    }
+    const handleOperation = operator =>{
+        equation.push(Number(number));
+        equation.push(operator);
+        operations.push(operator);
+        updateDisplay();
+        number = null;
+        console.log(equation);
+    }
+    async function handleEquals(){
+        equation.push(Number(number));
+        number = null;
+        const response = await fetch('./api/posts.json', {
+            method: 'POST',
+            body: JSON.stringify({ equation, operations }),
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        output = await response.json();
+        console.log(output);
+    }
+    const handleClear = () =>{
+        [ display, output, number, equation, operations ] = [ null, null, null, [], [] ]
+    }
+    const handleDelete = () =>{
+        if(number !== null){
+            number = number.toString().slice(0,-1);
+            display = display.toString().slice(0,-1);
+        } else {
+            number = null;
+            equation.pop();
+            updateDisplay();
+        }
+    }
+    const updateDisplay = () =>{
+        display = equation.toString().replaceAll(',','');
     }
 </script>
 
@@ -59,20 +115,20 @@
             <input type="text" bind:value={ output } id="calculator-output" class="absolute font-bold text-4xl bg-transparent px-5 overflow-hidden" placeholder="Answer"/>
             <input type="text" bind:value={ display } id="calculator-input" placeholder="0" class="font-bold absolute text-6xl bottom-8 right-10 w-full text-end bg-transparent overflow-hidden" />
         </div>
-        <div class="calculator-buttons w-full h-[60vh] m-auto grid grid-cols-4 gap-3 place-content-center text-center font-bold text-4xl" >
+        <div class="calculator-buttons w-full h-[60vh] mt-10 m-auto grid grid-cols-4 gap-3 place-content-center text-center font-bold text-4xl" >
             <button on:click= { handleClear } class="col-span-3 bg-blue-600">CLEAR</button>
             <button on:click= { handleDelete } class="bg-slate-950">DEL</button>
-            <button on:click= { () => handleNumbers('9') }  class="numbers ">9</button>
-            <button on:click= { () => handleNumbers('8') }  class="numbers">8</button>
             <button on:click= { () => handleNumbers('7') }  class="numbers">7</button>
+            <button on:click= { () => handleNumbers('8') }  class="numbers">8</button>
+            <button on:click= { () => handleNumbers('9') }  class="numbers ">9</button>
             <button on:click= { () => handleOperation('/') }  class="operations">/</button>
-            <button on:click= { () => handleNumbers('6') }  class="numbers">6</button>
-            <button on:click= { () => handleNumbers('5') }  class="numbers">5</button>
             <button on:click= { () => handleNumbers('4') }  class="numbers">4</button>
-            <button on:click= { () => handleOperation('*') }  class="operations">x</button>
-            <button on:click= { () => handleNumbers('3') }  class="numbers">3</button>
-            <button on:click= { () => handleNumbers('2') }  class="numbers">2</button>
+            <button on:click= { () => handleNumbers('5') }  class="numbers">5</button>
+            <button on:click= { () => handleNumbers('6') }  class="numbers">6</button>
+            <button on:click= { () => handleOperation('x') }  class="operations">x</button>
             <button on:click= { () => handleNumbers('1') }  class="numbers">1</button>
+            <button on:click= { () => handleNumbers('2') }  class="numbers">2</button>
+            <button on:click= { () => handleNumbers('3') }  class="numbers">3</button>
             <button on:click= { () => handleOperation('-') }  class="operations">-</button>
             <button on:click= { () => handleNumbers('.') }  class="numbers">.</button>
             <button on:click= { () => handleNumbers('0') }  class="numbers">0</button>
